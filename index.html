@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语义计算工具库 - 工具调用文档</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="6" fill="#6366f1"/>
+                        <path d="M8 10L16 16L24 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 22L12 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M24 22L20 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="16" cy="16" r="3" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <span>语义计算工具库</span>
+                </div>
+                <div class="header-meta">
+                    <span class="tag">v1.0.0</span>
+                    <span class="status">运行中</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h3>工具列表</h3>
+                    <span class="tool-count">10 个工具</span>
+                </div>
+                <nav class="tool-nav" id="toolNav">
+                    <!-- Tools will be rendered here -->
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="content">
+                <div class="content-header">
+                    <div class="breadcrumb">
+                        <span>语义计算工具库</span>
+                        <span class="separator">/</span>
+                        <span id="currentToolName">加载中...</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-secondary" id="copyBtn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 4H3C2.46957 4 1.96086 4.21071 1.58579 4.58579C1.21071 4.96086 1 5.46957 1 6V13C1 13.5304 1.21071 14.0391 1.58579 14.4142C1.96086 14.7893 2.46957 15 3 15H10C10.5304 15 11.0391 14.7893 11.4142 14.4142C11.7893 14.0391 12 13.5304 12 13V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9 1H13C13.5304 1 14.0391 1.21071 14.4142 1.58579C14.7893 1.96086 15 2.46957 15 3V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M6 10L15 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            复制代码
+                        </button>
+                        <button class="btn btn-primary" id="testBtn">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 3V13M8 13L5 10M8 13L11 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            在线测试
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <!-- Tool Description -->
+                    <section class="tool-description">
+                        <h2 id="toolTitle">工具描述</h2>
+                        <div id="toolDesc" class="description-text"></div>
+                        <div class="features">
+                            <h4>功能特点</h4>
+                            <div id="toolFeatures" class="features-list"></div>
+                        </div>
+                        <div class="use-cases">
+                            <h4>适用场景</h4>
+                            <div id="toolUseCases" class="use-cases-list"></div>
+                        </div>
+                    </section>
+
+                    <!-- API Documentation -->
+                    <section class="api-documentation">
+                        <div class="section-header">
+                            <h2>API 调用示例</h2>
+                            <div class="tabs" id="langTabs">
+                                <button class="tab active" data-lang="python">Python</button>
+                                <button class="tab" data-lang="curl">cURL</button>
+                                <button class="tab" data-lang="nodejs">Node.js</button>
+                            </div>
+                        </div>
+                        <div class="code-container">
+                            <pre><code id="codeExample"></code></pre>
+                        </div>
+                    </section>
+
+                    <!-- Parameters -->
+                    <section class="parameters">
+                        <h2>请求参数</h2>
+                        <div class="param-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>参数名</th>
+                                        <th>类型</th>
+                                        <th>必填</th>
+                                        <th>说明</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paramTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Response -->
+                    <section class="response">
+                        <h2>响应示例</h2>
+                        <div class="code-container">
+                            <pre><code id="responseExample"></code></pre>
+                        </div>
+                    </section>
+
+                    <!-- Online Test Panel -->
+                    <section class="test-panel" id="testPanel">
+                        <div class="test-header">
+                            <h2>在线测试</h2>
+                            <div class="test-status" id="testStatus">
+                                <span class="status-indicator" id="statusIndicator"></span>
+                                <span id="statusText">就绪</span>
+                            </div>
+                        </div>
+
+                        <div class="test-body">
+                            <div class="test-input">
+                                <h3>请求参数</h3>
+                                <div id="testForm"></div>
+                                <button class="btn btn-primary" id="executeBtn">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 3V13M8 13L5 10M8 13L11 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    执行测试
+                                </button>
+                            </div>
+
+                            <div class="test-output">
+                                <div class="output-header">
+                                    <h3>响应结果</h3>
+                                    <button class="btn btn-small btn-secondary" id="clearOutputBtn">清除结果</button>
+                                </div>
+                                <div class="output-container">
+                                    <pre><code id="testResult">等待测试执行...</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

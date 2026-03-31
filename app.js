@@ -749,7 +749,7 @@ async function executeTest() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-            signal: AbortSignal.timeout(30000) // 30秒超时
+            signal: AbortSignal.timeout(10000) // 10秒超时
         });
 
         if (!response.ok) {
@@ -768,15 +768,207 @@ async function executeTest() {
         testBtn.disabled = false;
 
     } catch (error) {
-        // 显示错误
-        testResult.textContent = `错误: ${error.message}\n\n请检查:\n1. 后端服务是否启动 (npm start)\n2. API 地址是否正确 (http://localhost:3000)\n3. 请求参数格式是否正确`;
+        // API 不可用时使用前端模拟数据
+        console.log('API调用失败，使用模拟数据:', error.message);
+        const mockResult = getMockResult(currentTool.id);
+        testResult.innerHTML = highlightCode(JSON.stringify(mockResult, null, 2), 'json');
 
-        // 更新状态
+        // 更新状态为模拟模式
         statusIndicator.classList.remove('loading');
-        statusIndicator.classList.add('error');
-        statusText.textContent = '失败';
+        statusIndicator.classList.remove('error');
+        statusText.textContent = '演示模式 (API不可用)';
         testBtn.disabled = false;
     }
+}
+
+// 获取模拟数据
+function getMockResult(toolId) {
+    const mockData = {
+        code: 200,
+        message: 'success',
+        data: {
+            tool: currentTool.name,
+            meta: {
+                processing_time: (Math.random() * 0.5 + 0.1).toFixed(3),
+                timestamp: new Date().toISOString()
+            }
+        }
+    };
+
+    switch (toolId) {
+        case 'move-recognition':
+            mockData.data.result = {
+                moves: [
+                    { type: '背景', text: '随着人工智能技术的快速发展，自然语言处理领域取得了显著进展。' },
+                    { type: '目标', text: '本文旨在提出一种新的语义表示学习方法，提高文本理解能力。' },
+                    { type: '方法', text: '我们采用了基于Transformer的预训练模型，并结合领域知识进行微调。' },
+                    { type: '结果', text: '实验结果表明，该方法在多个任务上达到了最先进性能。' },
+                    { type: '价值', text: '本研究为科技文本智能分析提供了新的思路和技术支持。' }
+                ]
+            };
+            break;
+
+        case 'auto-classification':
+            mockData.data.result = {
+                category: '计算机科学',
+                confidence: 0.95,
+                categories: [
+                    { name: '计算机科学', score: 0.95 },
+                    { name: '人工智能', score: 0.88 },
+                    { name: '机器学习', score: 0.82 }
+                ]
+            };
+            break;
+
+        case 'keyword-recognition':
+            mockData.data.result = {
+                keywords: [
+                    { word: '深度学习', score: 0.95 },
+                    { word: '神经网络', score: 0.87 },
+                    { word: '自然语言处理', score: 0.82 },
+                    { word: '语义表示', score: 0.78 },
+                    { word: '预训练模型', score: 0.75 }
+                ]
+            };
+            break;
+
+        case 'citation-recognition':
+            mockData.data.result = {
+                sentiment: {
+                    label: '支持',
+                    confidence: 0.87,
+                    details: { positive: 0.87, neutral: 0.10, negative: 0.03 }
+                },
+                intent: {
+                    label: '方法引入',
+                    confidence: 0.92,
+                    alternatives: [
+                        { label: '方法引入', score: 0.92 },
+                        { label: '背景介绍', score: 0.05 },
+                        { label: '结果比较', score: 0.03 }
+                    ]
+                }
+            };
+            break;
+
+        case 'definition-recognition':
+            mockData.data.result = {
+                definitions: [
+                    {
+                        concept: '深度学习',
+                        definition: '深度学习是机器学习的一个分支，它使用多层神经网络来模拟人脑的学习过程。',
+                        confidence: 0.93
+                    }
+                ]
+            };
+            break;
+
+        case 'ner-recognition':
+            mockData.data.result = {
+                entities: [
+                    { text: '人工智能', label: '领域', start: 0, end: 4, score: 0.95 },
+                    { text: 'Transformer', label: '方法', start: 15, end: 26, score: 0.92 },
+                    { text: 'Google', label: '机构', start: 30, end: 36, score: 0.88 }
+                ]
+            };
+            break;
+
+        case 'relation-recognition':
+            mockData.data.result = {
+                relations: [
+                    {
+                        subject: '人工智能',
+                        predicate: '包含',
+                        object: '深度学习',
+                        confidence: 0.89
+                    },
+                    {
+                        subject: 'Transformer',
+                        predicate: '被提出于',
+                        object: '2017年',
+                        confidence: 0.85
+                    }
+                ]
+            };
+            break;
+
+        case 'deep-clustering':
+            mockData.data.result = {
+                method: 'kmeans',
+                num_clusters: 3,
+                clusters: {
+                    cluster_0: {
+                        size: 2,
+                        documents: [
+                            { id: '0_0', text: '示例文档内容 0-0...', similarity: 0.856 },
+                            { id: '0_1', text: '示例文档内容 0-1...', similarity: 0.782 }
+                        ]
+                    },
+                    cluster_1: {
+                        size: 2,
+                        documents: [
+                            { id: '1_0', text: '示例文档内容 1-0...', similarity: 0.921 },
+                            { id: '1_1', text: '示例文档内容 1-1...', similarity: 0.843 }
+                        ]
+                    },
+                    cluster_2: {
+                        size: 1,
+                        documents: [
+                            { id: '2_0', text: '示例文档内容 2-0...', similarity: 0.765 }
+                        ]
+                    }
+                }
+            };
+            break;
+
+        case 'clustering-label':
+            mockData.data.result = {
+                labels: {
+                    cluster_0: ['深度学习', '神经网络', '预训练'],
+                    cluster_1: ['自然语言处理', '文本分类', '情感分析'],
+                    cluster_2: ['知识图谱', '实体抽取', '关系识别']
+                }
+            };
+            break;
+
+        case 'auto-review':
+            mockData.data.result = {
+                structure: {
+                    research_problems: [
+                        {
+                            id: 'rp_1',
+                            title: '语义表示学习的挑战',
+                            content: '当前语义表示学习面临的主要挑战包括数据稀疏性、领域适应性和可解释性等问题。'
+                        }
+                    ],
+                    research_methods: [
+                        {
+                            id: 'rm_1',
+                            title: '基于预训练模型的方法',
+                            content: '近年来，基于Transformer的预训练模型如BERT、GPT等在多个NLP任务中取得了突破性进展。'
+                        }
+                    ],
+                    research_progress: [
+                        {
+                            id: 'rprog_1',
+                            title: '技术发展历程',
+                            content: '从传统的词向量表示到大规模预训练模型，语义表示学习经历了多个发展阶段。'
+                        }
+                    ]
+                }
+            };
+            break;
+
+        default:
+            mockData.data.result = {
+                items: [
+                    { id: 1, text: '示例结果1', confidence: 0.95 },
+                    { id: 2, text: '示例结果2', confidence: 0.87 }
+                ]
+            };
+    }
+
+    return mockData;
 }
 
 // 绑定事件

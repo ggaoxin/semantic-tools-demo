@@ -138,9 +138,17 @@ let currentLang = 'python';
 
 // 初始化
 function init() {
+    console.log('Initializing app...');
+    console.log('Tools data:', toolsData);
+
     renderSidebar();
+    console.log('Sidebar rendered');
+
     selectTool(toolsData[0].id);
+    console.log('First tool selected');
+
     bindEvents();
+    console.log('Events bound');
 }
 
 // 渲染侧边栏
@@ -159,9 +167,15 @@ function renderSidebar() {
 
 // 选择工具
 function selectTool(toolId) {
-    const tool = toolsData.find(t => t.id === toolId);
-    if (!tool) return;
+    console.log('Selecting tool:', toolId);
 
+    const tool = toolsData.find(t => t.id === toolId);
+    if (!tool) {
+        console.error('Tool not found:', toolId);
+        return;
+    }
+
+    console.log('Found tool:', tool.name);
     currentTool = tool;
 
     // 更新侧边栏激活状态
@@ -200,7 +214,30 @@ function selectTool(toolId) {
     updateCodeExamples();
 
     // 更新测试表单
+    console.log('Calling renderTestForm...');
     renderTestForm();
+
+    // 重置测试结果
+    resetTestResult();
+}
+
+// 重置测试结果
+function resetTestResult() {
+    const testResult = document.getElementById('testResult');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusText = document.getElementById('statusText');
+
+    if (testResult) {
+        testResult.textContent = '等待测试执行...';
+    }
+
+    if (statusIndicator) {
+        statusIndicator.classList.remove('loading', 'error');
+    }
+
+    if (statusText) {
+        statusText.textContent = '就绪';
+    }
 }
 
 // 更新代码示例
@@ -381,62 +418,29 @@ function highlightCode(code, lang) {
 // 渲染测试表单
 function renderTestForm() {
     const formContainer = document.getElementById('testForm');
-    if (!formContainer) return;
+    if (!formContainer) {
+        console.error('testForm element not found');
+        return;
+    }
 
-    formContainer.innerHTML = `
+    console.log('Current tool:', currentTool.name);
+    console.log('Parameters:', currentTool.params);
+
+    const formHTML = `
         <div class="test-form">
             ${currentTool.params.map(param => generateFormField(param)).join('')}
         </div>
     `;
+
+    console.log('Generated form HTML:', formHTML);
+    formContainer.innerHTML = formHTML;
 }
 
 // 生成表单字段
 function generateFormField(param) {
     const { name, type, required, desc } = param;
 
-    if (type === 'array' && name === 'documents') {
-        return `
-            <div class="form-group">
-                <label>${name}${required ? '<span class="required-mark">*</span>' : ''}</label>
-                <textarea id="test_${name}" placeholder='[{"id": "1", "text": "示例文本1"}, {"id": "2", "text": "示例文本2"}]' data-type="json"></textarea>
-                <div class="form-help">${desc}</div>
-            </div>
-        `;
-    }
-
-    if (type === 'object' && name === 'clusters') {
-        return `
-            <div class="form-group">
-                <label>${name}${required ? '<span class="required-mark">*</span>' : ''}</label>
-                <textarea id="test_${name}" placeholder='{"cluster_0": {"documents": [{"id": "1", "text": "示例文本"}]}}' data-type="json"></textarea>
-                <div class="form-help">${desc}</div>
-            </div>
-        `;
-    }
-
-    if (type === 'text' || type === 'string') {
-        const isLongText = name === 'text' || name === 'citation_text';
-        return `
-            <div class="form-group">
-                <label>${name}${required ? '<span class="required-mark">*</span>' : ''}</label>
-                ${isLongText
-                    ? `<textarea id="test_${name}" placeholder="请输入${desc.split('，')[0]}" data-type="string">${getDefaultValue(name)}</textarea>`
-                    : `<input type="text" id="test_${name}" placeholder="${desc.split('，')[0]}" data-type="string" value="${getDefaultValue(name)}">`}
-                <div class="form-help">${desc}</div>
-            </div>
-        `;
-    }
-
-    if (type === 'integer') {
-        return `
-            <div class="form-group">
-                <label>${name}${required ? '<span class="required-mark">*</span>' : ''}</label>
-                <input type="number" id="test_${name}" placeholder="请输入数字" data-type="integer" value="${getDefaultValue(name)}">
-                <div class="form-help">${desc}</div>
-            </div>
-        `;
-    }
-
+    // 特殊参数优先处理
     if (name === 'language') {
         return `
             <div class="form-group">
@@ -463,7 +467,172 @@ function generateFormField(param) {
         `;
     }
 
+    if (name === 'mode') {
+        const options = getTypeOptions(currentTool.id, name);
+        return `
+            <div class="form-group">
+                <label>${name}</label>
+                <select id="test_${name}" data-type="select">
+                    ${options.map(opt => `<option value="${opt.value}" ${opt.default ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                </select>
+                <div class="form-help">${desc}</div>
+            </div>
+        `;
+    }
+
+    if (name === 'method') {
+        const options = getTypeOptions(currentTool.id, name);
+        return `
+            <div class="form-group">
+                <label>${name}</label>
+                <select id="test_${name}" data-type="select">
+                    ${options.map(opt => `<option value="${opt.value}" ${opt.default ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                </select>
+                <div class="form-help">${desc}</div>
+            </div>
+        `;
+    }
+
+    if (name === 'structure') {
+        const options = getTypeOptions(currentTool.id, name);
+        return `
+            <div class="form-group">
+                <label>${name}</label>
+                <select id="test_${name}" data-type="select">
+                    ${options.map(opt => `<option value="${opt.value}" ${opt.default ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                </select>
+                <div class="form-help">${desc}</div>
+            </div>
+        `;
+    }
+
+    if (name === 'domain') {
+        const options = getDomainOptions();
+        return `
+            <div class="form-group">
+                <label>${name}</label>
+                <select id="test_${name}" data-type="select">
+                    ${options.map(opt => `<option value="${opt.value}" ${opt.default ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                </select>
+                <div class="form-help">${desc}</div>
+            </div>
+        `;
+    }
+
+    // 按类型处理
+    if (type === 'array' && name === 'documents') {
+        return `
+            <div class="form-group">
+                <label>${name}${required ? '<span class="required-mark">*</span>' : ''}</label>
+                <textarea id="test_${name}" placeholder='[{"id": "1", "text": "示例文本1"}, {"id": "2", "text": "示例文本2"}]' data-type="json"></textarea>
+                <div class="form-help">${desc}</div>
+            </div>
+        `;
+    }
+
+    if (type === 'object' && name === 'clusters') {
+        return `
+            <div class="form-group">
+                <label>${name}${required ? '<span class="required-mark">*</span>' : ''}</label>
+                <textarea id="test_${name}" placeholder='{"cluster_0": {"documents": [{"id": "1", "text": "示例文本"}]}}' data-type="json"></textarea>
+                <div class="form-help">${desc}</div>
+            </div>
+        `;
+    }
+
+    if (type === 'integer') {
+        const options = getIntegerOptions(currentTool.id, name);
+        if (options && options.length > 0) {
+            return `
+                <div class="form-group">
+                    <label>${name}</label>
+                    <select id="test_${name}" data-type="select">
+                        ${options.map(opt => `<option value="${opt.value}" ${opt.default ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                    </select>
+                    <div class="form-help">${desc}</div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="form-group">
+                    <label>${name}</label>
+                    <input type="number" id="test_${name}" placeholder="请输入数字" data-type="integer" value="${getDefaultValue(name)}">
+                    <div class="form-help">${desc}</div>
+                </div>
+            `;
+        }
+    }
+
+    if (type === 'text' || type === 'string') {
+        const isLongText = name === 'text' || name === 'citation_text';
+        return `
+            <div class="form-group">
+                <label>${name}${required ? '<span class="required-mark">*</span>' : ''}</label>
+                ${isLongText
+                    ? `<textarea id="test_${name}" placeholder="请输入${desc.split('，')[0]}" data-type="string">${getDefaultValue(name)}</textarea>`
+                    : `<input type="text" id="test_${name}" placeholder="${desc.split('，')[0]}" data-type="string" value="${getDefaultValue(name)}">`}
+                <div class="form-help">${desc}</div>
+            </div>
+        `;
+    }
+
     return '';
+}
+
+// 获取数字参数选项
+function getIntegerOptions(_toolId, paramName) {
+    if (paramName === 'top_k') {
+        return [
+            { value: '3', label: '3', default: false },
+            { value: '5', label: '5', default: false },
+            { value: '10', label: '10', default: true },
+            { value: '15', label: '15', default: false },
+            { value: '20', label: '20', default: false }
+        ];
+    }
+
+    if (paramName === 'n_clusters') {
+        return [
+            { value: '2', label: '2', default: false },
+            { value: '3', label: '3', default: true },
+            { value: '4', label: '4', default: false },
+            { value: '5', label: '5', default: false },
+            { value: '自动确定', label: '自动确定', default: false }
+        ];
+    }
+
+    if (paramName === 'num_labels') {
+        return [
+            { value: '1', label: '1', default: false },
+            { value: '3', label: '3', default: true },
+            { value: '5', label: '5', default: false }
+        ];
+    }
+
+    if (paramName === 'max_sections') {
+        return [
+            { value: '10', label: '10', default: false },
+            { value: '20', label: '20', default: true },
+            { value: '30', label: '30', default: false },
+            { value: '50', label: '50', default: false }
+        ];
+    }
+
+    return [];
+}
+
+// 获取领域选项
+function getDomainOptions() {
+    return [
+        { value: '', label: '不指定', default: true },
+        { value: 'medicine', label: 'medicine - 医学', default: false },
+        { value: 'physics', label: 'physics - 物理学', default: false },
+        { value: 'chemistry', label: 'chemistry - 化学', default: false },
+        { value: 'biology', label: 'biology - 生物学', default: false },
+        { value: 'computer_science', label: 'computer_science - 计算机科学', default: false },
+        { value: 'engineering', label: 'engineering - 工程学', default: false },
+        { value: 'agriculture', label: 'agriculture - 农业科学', default: false }
+    ];
 }
 
 // 获取类型选项
@@ -614,8 +783,10 @@ async function executeTest() {
 function bindEvents() {
     // 侧边栏工具点击
     document.getElementById('toolNav').addEventListener('click', (e) => {
+        console.log('Navigation clicked:', e.target);
         const item = e.target.closest('.tool-item');
         if (item) {
+            console.log('Tool item clicked, ID:', item.dataset.id);
             selectTool(item.dataset.id);
         }
     });

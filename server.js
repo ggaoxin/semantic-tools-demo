@@ -1,9 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// 静态文件服务
+app.use(express.static(__dirname));
 
 // 模拟的语义计算工具库
 const semanticTools = {
